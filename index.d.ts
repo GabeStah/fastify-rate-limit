@@ -48,6 +48,16 @@ export interface RateLimitPluginOptions {
   keyGenerator?: (req: FastifyRequest) => string | number;
   errorResponseBuilder?: (req: FastifyRequest, context: errorResponseBuilderContext) => object;
   addHeaders?: AddHeaders;
+  hookMethod?:
+    | 'onRequest'
+    | 'preParsing'
+    | 'preValidation'
+    | 'preHandler'
+    | 'preSerialization'
+    | 'onError'
+    | 'onSend'
+    | 'onResponse'
+    | 'onTimeout';
 }
 
 declare const fastifyRateLimit: FastifyPlugin<RateLimitPluginOptions>;

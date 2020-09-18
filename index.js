@@ -45,6 +45,9 @@ function rateLimitPlugin (fastify, settings, next) {
   globalParams.whitelist = settings.whitelist || null
   globalParams.ban = settings.ban || null
 
+  // define the global Fastify hook method
+  globalParams.hookMethod = settings.hookMethod || 'onRequest'
+
   // define the name of the app component. Related to redis, it will be use as a part of the keyname define in redis.
   const pluginComponent = {
     whitelist: globalParams.whitelist
@@ -111,16 +114,16 @@ function rateLimitPlugin (fastify, settings, next) {
 function buildRouteRate (pluginComponent, params, routeOptions) {
   const after = ms(params.timeWindow, { long: true })
 
-  if (Array.isArray(routeOptions.onRequest)) {
-    routeOptions.onRequest.push(onRequest)
-  } else if (typeof routeOptions.onRequest === 'function') {
-    routeOptions.onRequest = [routeOptions.onRequest, onRequest]
+  if (Array.isArray(routeOptions[params.hookMethod])) {
+    routeOptions[params.hookMethod].push(hookHandler)
+  } else if (typeof routeOptions[params.hookMethod] === 'function') {
+    routeOptions[params.hookMethod] = [routeOptions[params.hookMethod], hookHandler]
   } else {
-    routeOptions.onRequest = [onRequest]
+    routeOptions[params.hookMethod] = [hookHandler]
   }
 
-  // onRequest function that will be use for current endpoint been processed
-  function onRequest (req, res, next) {
+  // hookHandler function that will be use for current endpoint been processed
+  function hookHandler (req, res, next) {
     // We retrieve the key from the generator. (can be the global one, or the one define in the endpoint)
     const key = params.keyGenerator(req)
 
